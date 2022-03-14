@@ -5,14 +5,14 @@ CREATE DATABASE my_db;
 -- Table: users
 CREATE TABLE users (
     id_user serial  NOT NULL,
-    username varchar(150)  NOT NULL,
+    username varchar(150),
     CONSTRAINT users_pk PRIMARY KEY (id_user)
 );
 -- Table: tweets
 CREATE TABLE tweets (
     id_tweet serial  NOT NULL,
-    texto varchar(240)  NOT NULL,
-    id_user_fk int  NOT NULL,
+    texto varchar(240),
+    id_user_fk int,
     CONSTRAINT tweets_pk PRIMARY KEY (id_tweet)
 );
 

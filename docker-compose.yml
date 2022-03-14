@@ -9,6 +9,11 @@ services:
       - ./demo-twitter.sql:/docker-entrypoint-initdb.d/demo-twitter.sql
     ports:
       - 5432:5432
+  
+  redis:
+    image: redis:6.2-alpine
+    ports:
+      - 6379:6379
   web:
     build: .
     ports:
@@ -19,7 +24,3 @@ services:
       PGHOST: postgres
       PGPASSWORD: password
       PGDATABASE: my_db
-  redis:
-    image: redis:6.2-alpine
-    ports:
-      - 6379:6379
