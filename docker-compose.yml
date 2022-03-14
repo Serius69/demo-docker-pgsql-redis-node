@@ -1,0 +1,25 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:14.1-alpine
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      # asignar el archivo .sql de la base de datos
+      - ./demo-twitter.sql:/docker-entrypoint-initdb.d/demo-twitter.sql
+    ports:
+      - 5432:5432
+  web:
+    build: .
+    ports:
+      - 3000:3000
+    environment:
+      # Las variables para la conexion a la base de datos por docker
+      PGUSER: postgres
+      PGHOST: postgres
+      PGPASSWORD: password
+      PGDATABASE: my_db
+  redis:
+    image: redis:6.2-alpine
+    ports:
+      - 6379:6379
