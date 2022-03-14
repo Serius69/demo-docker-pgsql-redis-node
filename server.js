@@ -25,7 +25,25 @@ app.get('/tweets/:user', async (req, res) => {
   res.json({source: 'pg', data: data.rows});
   
   }catch (err) {
-  console.error(`Error while posting quotes `, err.message);
+  console.error(`Error while getting quotes `, err.message);
+  res.status(err.statusCode || 500).json({'message': err.message});
+  }
+
+});
+//funciona
+// Buscar los tweets de un usuario en particular
+app.get('/alltweets', async (req, res) => {
+  try {
+  const redisData = await get('alltweetsRD')
+  if (redisData) {
+    return res.json({source: 'redis', data: JSON.parse(redisData)})
+  }
+  const data = await pgClient.query('select * from tweets')
+  await set('alltweetsRD', JSON.stringify(data.rows), 'EX', 10)
+  res.json({source: 'pg', data: data.rows});
+  
+  }catch (err) {
+  console.error(`Error while getting quotes `, err.message);
   res.status(err.statusCode || 500).json({'message': err.message});
   }
 
@@ -48,15 +66,33 @@ app.get('/follows/:user', async (req, res) => {
   }
 
 });
+//funciona
+// Mostrar todos los usuarios
+app.get('/users', async (req, res) => {
+  try {
+  const redisData = await get('latestusers')
+  if (redisData) {
+    return res.json({source: 'redis', data: JSON.parse(redisData)})
+  }
+  const data = await pgClient.query('select * from users')
+  await set('latestusers', JSON.stringify(data.rows), 'EX', 10)
+  res.json({source: 'pg', data: data.rows});
+  
+  }catch (err) {
+  console.error(`Error while posting quotes `, err.message);
+  res.status(err.statusCode || 500).json({'message': err.message});
+  }
+
+});
 // 
 // Crear un nuevo tweet 
-app.post("/ptweet", async (req, res) => {
+app.post("/ptweet/:usuario/:textos", async (req, res) => {
   try {
-    var usuario = Number(req.params.usuario);
-    var textos = String(req.params.texto);
-    const data = await pgClient.query('INSERT INTO tweets (texto,id_user_fk) VALUES ($1, $2)', [textos,usuario]);
-    res.json({source: 'pg', data: data.rows});
-    await set('latesttweets', JSON.stringify(data.rows), 'EX', 10)
+    var usuariovar = Number(req.params.usuario);
+    var textovar = String(req.params.textos);
+    const pgClientPT = new Pool()
+    await pgClientPT.query('INSERT INTO tweets (texto,id_user_fk) VALUES ($1, $2)', [textovar,usuariovar]);
+    res.status(pgClientPT.statusCode || 200).json({'message': 'datos ingresados correctamente'});
   } catch (err) {
     console.error(`Error while posting quotes `, err.message);
     res.status(err.statusCode || 500).json({'message': err.message});
@@ -65,12 +101,12 @@ app.post("/ptweet", async (req, res) => {
 });
 // 
 // realizar un follow de un usuario a otro
-app.post("/pfollow", async (req, res) => {  
+app.post("/pfollow/:idfollower/:idfolloweed", async (req, res) => {  
   try {  
     var idFA = Number(req.params.idfollower);
-    var idFB = String(req.params.idfolloweed);
-  const data = await pgClient.query('INSERT INTO follows (id_follower,id_followeed) VALUES ($1, $2)', [idFA,idFB]);
-  res.json({source: 'pg', data: data.rows});  
+    var idFB = Number(req.params.idfolloweed);
+  const dataP = await pgClient.query('INSERT INTO follows (id_follower,id_followeed) VALUES ($1, $2)', [idFA,idFB]);
+  res.json({source: 'pg', dataP: dataP.rows});  
   } catch (err) {
   console.error(`Error while posting quotes `, err.message);
   res.status(err.statusCode || 500).json({'message': err.message});
