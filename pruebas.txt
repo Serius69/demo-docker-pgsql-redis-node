@@ -1,0 +1,27 @@
+PostgresSQL
+
+docker ps para mostrar los contenedores 
+
+docker exec -it 5dc27b982bd0 bash para ejecutar un repositorio
+
+psql -U postgres my_db | conectarme a la BD my_db
+
+\l mostrar las bases de datos
+
+\dt mostrar las tablas
+
+\d [table_name] mostrar la estructura de una tabla
+
+select * from [table_name]; mostrar el contenido de una tabla
+
+
+Redis
+
+
+docker exec -it d9464616eaa9 sh
+
+redis-cli -h redis 
+
+keys *
+
+get nombre_key
