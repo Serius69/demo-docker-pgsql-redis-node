@@ -1,5 +1,5 @@
 CREATE DATABASE my_db;
-
+-- Connect DB
 \c my_db;
 
 -- Table: users

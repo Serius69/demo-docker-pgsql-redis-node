@@ -38,18 +38,15 @@ app.get('/timeline/:user', async (req, res) => {
 app.get('/alltweets', async (req, res) => {
   try {
   const redisData = await get('alltweetsRD')
-  const data = await pgClient.query('select * from tweets order by id_tweet                                                          ASC LIMIT 13')
-  if (redisData == null) {
-    if (data!= null){
-      await set('alltweetsRD', JSON.stringify(data.rows), 'EX', 100)
-      return res.json({source: 'redis', data: JSON.parse(redisData)})
-      
-    }    
-    res.json({source: 'pg', data: data.rows});
+  
+  if (redisData) {    
+    return res.json({source: 'redis', data: JSON.parse(redisData)})       
   }
-  return res.json({source: 'redis', data: JSON.parse(redisData)})
-  
-  
+  else{
+    const data = await pgClient.query('select * from tweets order by id_tweet')
+    await set('alltweetsRD', JSON.stringify(data.rows), 'EX', 100)
+    res.json({source: 'pg', data: data.rows});
+  }  
   }catch (err) {
   console.error('Error while getting quotes', err.message);
   res.status(err.statusCode || 500).json({'message': err.message});
@@ -64,10 +61,11 @@ app.get('/allfollows', async (req, res) => {
   const redisData = await get('allfollowsRD')
   if (redisData) {
     return res.json({source: 'redis', data: JSON.parse(redisData)})
-  }
-  const data = await pgClientT.query('select * from follows')
-  await set('allfollowsRD', JSON.stringify(data.rows), 'EX', 10)
-  res.json({source: 'pg', data: data.rows});
+  }else{
+    const data = await pgClientT.query('select * from follows')
+    await set('allfollowsRD', JSON.stringify(data.rows), 'EX', 100)
+    res.json({source: 'pg', data: data.rows});
+  }  
   
   }catch (err) {
   console.error('Error while getting quotes', err.message);
@@ -82,10 +80,11 @@ app.get('/follows/:user', async (req, res) => {
   const redisData = await get('latesttweets')
   if (redisData) {
     return res.json({source: 'redis', data: JSON.parse(redisData)})
-  }
-  const data = await pgClient.query('select * from follows where id_follower = '+req.params.user)
-  await set('latesttweets', JSON.stringify(data.rows), 'EX', 10)
-  res.json({source: 'pg', data: data.rows});
+  }else{
+    const data = await pgClient.query('select * from follows where id_follower = '+req.params.user)
+    await set('latesttweets', JSON.stringify(data.rows), 'EX', 100)
+    res.json({source: 'pg', data: data.rows});
+  }  
   
   }catch (err) {
   console.error(`Error while posting quotes `, err.message);
@@ -100,10 +99,12 @@ app.get('/users', async (req, res) => {
   const redisData = await get('latestusers')
   if (redisData) {
     return res.json({source: 'redis', data: JSON.parse(redisData)})
+  }else{
+    const data = await pgClient.query('select * from users')
+    await set('latestusers', JSON.stringify(data.rows), 'EX', 100)
+    res.json({source: 'pg', data: data.rows});
   }
-  const data = await pgClient.query('select * from users')
-  await set('latestusers', JSON.stringify(data.rows), 'EX', 10)
-  res.json({source: 'pg', data: data.rows});
+  
   
   }catch (err) {
   console.error(`Error while posting quotes `, err.message);
@@ -136,7 +137,7 @@ app.post("/pfollow/:idfollower/:idfolloweed", async (req, res) => {
     var idFB = Number(req.params.idfolloweed);
     const pgClientFO = new Pool()
     await pgClientFO.query('INSERT INTO follows (id_follower,id_followeed) VALUES ($1, $2)', [idFA,idFB]);
-    res.status(pgClientPT.statusCode || 200).json({'message': 'datos ingresados correctamente'}); 
+    res.status(pgClientFO.statusCode || 200).json({'message': 'Usuario '+req.params.idfolloweed+'sigue a '+req.params.idfollower}); 
   } catch (err) {
   console.error(`Error while posting quotes `, err.message);
   res.status(err.statusCode || 500).json({'message': err.message});
